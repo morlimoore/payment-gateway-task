@@ -1,6 +1,22 @@
 version: "3.8"
 
 services:
+  payment-gateway:
+    container_name: payment-gateway
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    depends_on:
+      - bank_simulator
+    environment:
+      SPRING_APPLICATION_NAME: payment-gateway
+      SERVER_PORT: 8090
+      BANK_SIMULATOR_URL: http://bank_simulator:8080/payments
+    networks:
+      - payment-network
+
   bank_simulator:
     container_name: bank_simulator
     image: bbyars/mountebank:2.8.1
@@ -12,4 +28,9 @@ services:
       - type: bind
         source: ./imposters
         target: /imposters
-      
+    networks:
+      - payment-network
+
+networks:
+  payment-network:
+    driver: bridge
